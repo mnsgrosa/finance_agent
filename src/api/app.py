@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from typing import Dict, List
-from src.api.db.data_storage import FinanceDb
-from src.agent.agent_schemas.output_schemas import EmpresasOutput
+from app.src.api.db.data_storage import FinanceDb
+from app.src.agent.agent_schemas.output_schemas import EmpresasOutput
 import uvicorn
 
 app = FastAPI()

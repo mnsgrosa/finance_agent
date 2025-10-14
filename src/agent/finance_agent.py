@@ -7,7 +7,7 @@ from typing import Dict, Any
 from pydantic_ai import Agent, RunContext, ToolReturn
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.ollama import OllamaProvider
-from src.agent.agent_schemas.output_schemas import (
+from app.src.agent.agent_schemas.output_schemas import (
     EmpresasOutput, 
     DataPoints,
     DbExists
@@ -145,7 +145,7 @@ def get_ticker_plot(context: RunContext[Dict], company_ticker: str, start_date: 
     return returnable_data_dict
 
 class FinanceAgent:
-    def __init__(self, agent):
+    def __init__(self):
         self.agent = agent
         self.response = None
 
