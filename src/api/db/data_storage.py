@@ -2,7 +2,7 @@ import sqlite3
 import pandas as pd
 from typing import Dict, List, Any
 from contextlib import contextmanager
-from src.utils.logger import MainLogger
+# from src.utils.logger import setup_logging
 
 class FinanceDb:
     def __init__(self):
@@ -18,35 +18,31 @@ class FinanceDb:
         
         cursor = None
         try:
-            self.info("Creating cursor")
             cursor = self.conn.cursor()
             yield cursor
-            self.info("Committing changes")
             self.conn.commit()
         except Exception as e:
-            self.error(f"Error during transaction: {e}. Rolling back changes.")
             if self.conn:
                 self.conn.rollback()
             raise e  
         finally:
             if cursor:
-                self.info("Closing cursor")
                 cursor.close()  
 
     def _check_schema(self):
-        self.info("Checking the schema")
         with self.get_cursor() as cursor:
             cursor.execute('''
-                CREATE TABLE IF NOT EXISTS b3 (
-                    company_name TEXT,
-                    ticker TEXT
-                );
-            ''')
-        return
+                    CREATE TABLE IF NOT EXISTS b3 (
+                        company_name TEXT,
+                        ticker TEXT,
+                    UNIQUE (company_name, ticker)
+                    );
+            '''
+            )
+        return None
     
     def insert(self, data:List[Dict[str, Any]]):
         if data is None:
-            self.error("Empty data")
             return False
         
         insertion_query = """
@@ -56,21 +52,15 @@ class FinanceDb:
             """
         
         try:
-            self.info("Starting insertion")
             data_to_insert = [
-                (
-                    d['company_name'], 
-                    d['ticker'], 
-                ) for d in data
+                (d['company_name'], d['ticker']) for d in data
             ]
 
             with self.get_cursor() as cursor:
                 cursor.executemany(insertion_query, data_to_insert)
-            self.info("Insertion done")
-            return True
+            return "Succes"
         except Exception as e:
-            self.error(f"Error while inserting data to the db: {e}")
-            return False
+            return f"Error: {e}"
         
     def get_ticker(self, company_name: str):
         query = f'''
@@ -79,12 +69,25 @@ class FinanceDb:
         '''
 
         df = pd.read_sql_query(query, self.conn)
-        return df
+        values = df.to_dict('records')
+        return values
 
     def check(self):
         query = f'''
             SELECT COUNT(*) as count FROM b3
         '''
 
-        df = pd.read_sql_query(query, self.conn)
-        return True if df.shape[0] > 0 else False
+        with self.get_cursor() as cursor:
+            value = cursor.execute(query).fetchone()[0]
+        
+        return False if value < 1 else True
+
+    def drop(self):
+        query = f"""
+            DROP TABLE b3
+        """
+
+        with self.get_cursor() as cursor:
+            cursor.execute(query)
+        
+        return None
