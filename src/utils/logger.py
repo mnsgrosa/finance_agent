@@ -7,4 +7,4 @@ def setup_logging(service_name: str = "Financial-agent", env: str = "dev"):
         send_to_logfire = 'if-token-present'
     )
 
-    logfire.install_auto_tracing(modules = ['httpx', 'yfinance', 'gradio'])
+    logfire.install_auto_tracing(modules = ['src.agent.finance_agent'], min_duration = 0.01)
