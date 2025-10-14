@@ -6,6 +6,8 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "beautifulsoup4>=4.14.2",
+    "fastapi>=0.119.0",
+    "gradio>=5.49.1",
     "pydantic-ai>=1.0.18",
     "yfinance>=0.2.66",
 ]
