@@ -18,7 +18,7 @@ import investpy
 # setup_logging(service_name = "Financial-agent")
 
 ollama_model = OpenAIChatModel(
-    model_name = "qwen2.5:14b",
+    model_name = "llama3.1:8b",
     provider = OllamaProvider(base_url = "http://localhost:11434/v1")
 )
 
