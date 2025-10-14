@@ -1,13 +1,10 @@
-import os
 import yfinance as yf
-import pandas as pd
 import httpx
 import pandas as pd
+import investpy
 from bs4 import BeautifulSoup
-from typing import Dict, List
-from pydantic import BaseModel
-from pydantic_ai import Agent, RunContext, ToolReturn, BinaryContent
-from pydantic_ai.models.test import TestModel
+from typing import Dict, Any
+from pydantic_ai import Agent, RunContext, ToolReturn
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.ollama import OllamaProvider
 from src.agent.agent_schemas.output_schemas import (
@@ -15,9 +12,10 @@ from src.agent.agent_schemas.output_schemas import (
     DataPoints,
     DbExists
 )
-from src.utils.logger import setup_logging
+import investpy
+# from src.utils.logger import setup_logging
 
-setup_logging(service_name = "Financial-agent")
+# setup_logging(service_name = "Financial-agent")
 
 ollama_model = OpenAIChatModel(
     model_name = "qwen2.5:14b",
@@ -26,7 +24,7 @@ ollama_model = OpenAIChatModel(
 
 agent = Agent(
     ollama_model,
-    output_type = [EmpresasOutput, DbExists, DataPoints, str],
+    output_type = [EmpresasOutput, DbExists, DataPoints, str, Dict[Any, Any]],
     system_prompt = (
         r"""
         You are a financial expert agent, that whenever prompted to provide information about companies listed in the brazilian stock exchange (B3),
@@ -99,21 +97,10 @@ def store_tickers(context: RunContext[Dict]) -> Dict[str, str]:
     Returns:
         Returns a dictionary with a message if wether the operation was successful or not
     """
-    with httpx.Client() as client:
-        response = client.get("https://www.infomoney.com.br/cotacoes/empresas-b3/")
-        response.raise_status()
-    soup = BeautifulSoup(response.text, "html.parser")
-    
-    empresas = soup.find_all("td", class_ = "higher")
-    empresas = [empresa.text.lower() for empresa in empresas]
-
-    tickers = soup.find_all("td", class_ = "strong")
-    tickers = [ticker.text for ticker in tickers]
-
-    tickers_dict = {empresa:ticker for empresa, ticker in zip(empresas, tickers)}
+    items = investpy.stocks.get_stocks(country = "brazil")[["name", "symbol"]].to_dict("records")
 
     with httpx.Client() as client:
-        response = client.post("http://localhost:8000/store_tickers", json = tickers_dict)
+        response = client.post("http://localhost:8000/store_tickers", json = {})
         if response.status_code != 200:
             raise Exception("Error storing tickers via API")
 
@@ -137,7 +124,7 @@ def get_ticker(context: RunContext[Dict], company_name: str) -> Dict[str, str]:
     return {"ticker": None}
 
 @agent.tool
-def get_ticker_plot(context: RunContext[Dict], company_ticker: str, start_date: str = "2025-09-01", end_date: str = "2025-10-01") -> Dict[str, float]:
+def get_ticker_plot(context: RunContext[Dict], company_ticker: str, start_date: str = "2025-09-01", end_date: str = "2025-10-01") -> DataPoints:
     """
     Tool that gets the ticker value daily and returns them from the dates given
     ARGS:
@@ -153,9 +140,9 @@ def get_ticker_plot(context: RunContext[Dict], company_ticker: str, start_date: 
     values = data['Close'].round(2).tolist()
 
     returnable_data = {date:value for date, value in zip(dates, values)}
-    returnable_data = DataPoints(points  = returnable_data)
+    returnable_data_dict = DataPoints(points  = returnable_data)
 
-    return returnable_data
+    return returnable_data_dict
 
 class FinanceAgent:
     def __init__(self, agent):

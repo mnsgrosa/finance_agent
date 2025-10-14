@@ -1,16 +1,19 @@
 from pydantic import BaseModel, Field
 from typing import List, Dict
 
+class Empresa(BaseModel):
+    company_name: str = Field(..., description = "Company name")
+    ticker: str = Field(..., description = "Ticker from company")
+
 class EmpresasOutput(BaseModel):
-    data: Dict[str, str] = Field(..., 
-                                description = "Dictionary where each key is the name of the company and value the ticker symbol",
-                                examples = r"{'natura':'nat4', 'petrobras':'petr4'}")
+    empresas: List[Empresa] = Field(..., description = "List of object Empresa")
+
+class DataPoint(BaseModel):
+    date: str = Field(..., description = "Point on the x axis")
+    value: float = Field(..., description = "Point on the y axis")
 
 class DataPoints(BaseModel):
-    points: Dict[str, float] = Field(...,
-                                    description = "Dictionary where each key is a date in the format YYYY-MM-DD and value the closing price of the stock on that date",
-                                    examples = r"{'2025-09-01': 23.45, '2025-09-02': 24.10}"
-    )
+    points: List[DataPoint] = Field(..., description = "List of objects datapoints")
 
 class DbExists(BaseModel):
     tickers_stored: bool = Field(...,
