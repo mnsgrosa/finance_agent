@@ -10,7 +10,8 @@ from pydantic_ai.providers.ollama import OllamaProvider
 from app.src.agent.agent_schemas.output_schemas import (
     EmpresasOutput, 
     DataPoints,
-    DbExists
+    DbExists,
+    Ticker
 )
 import investpy
 # from src.utils.logger import setup_logging
@@ -24,7 +25,7 @@ ollama_model = OpenAIChatModel(
 
 agent = Agent(
     ollama_model,
-    output_type = [EmpresasOutput, DbExists, DataPoints, str, Dict[Any, Any]],
+    output_type = [EmpresasOutput, DbExists, DataPoints, Ticker],
     system_prompt = (
         r"""
         You are a financial expert agent, that whenever prompted to provide information about companies listed in the brazilian stock exchange (B3),
@@ -104,7 +105,9 @@ def store_tickers(context: RunContext[Dict]) -> Dict[str, str]:
         if response.status_code != 200:
             raise Exception("Error storing tickers via API")
 
-    return {"message": response.text}
+    ans = response.json().get("status", False)
+
+    return {"ticker_stored": ans}
 
 @agent.tool
 def get_ticker(context: RunContext[Dict], company_name: str) -> Dict[str, str]:
