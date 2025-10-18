@@ -20,3 +20,10 @@ class DbExists(BaseModel):
                                 description = "Boolean indicating if the tickers are stored in the database",
                                 examples = r"{'tickers_stored': True}"
     )
+
+class Ticker(BaseModel):
+    ticker: str = Field(
+        ...,
+        description = "Ticker name"
+        examples = r"{'ticker':'NATU3'}"
+    )
