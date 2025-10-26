@@ -5,26 +5,26 @@ import investpy
 from bs4 import BeautifulSoup
 from typing import Dict, Any
 from pydantic_ai import Agent, RunContext, ToolReturn
-from pydantic_ai.models.openai import OpenAIChatModel
-from pydantic_ai.providers.ollama import OllamaProvider
+from pydantic_ai.models.huggingface import HuggingFaceModel
 from app.src.agent.agent_schemas.output_schemas import (
     EmpresasOutput, 
     DataPoints,
     DbExists,
     Ticker
 )
-import investpy
-# from src.utils.logger import setup_logging
+from investiny import search_assets, historical_data
+from dotenv import load_dotenv
+import os
 
-# setup_logging(service_name = "Financial-agent")
+load_dotenv()
 
-ollama_model = OpenAIChatModel(
-    model_name = "llama3.1:8b",
-    provider = OllamaProvider(base_url = "http://localhost:11434/v1")
+model = HuggingFaceModel(
+    model_name = "cfahlgren1/natural-functions",
+    api_key = os.getenv("HF_API_KEY"),
 )
 
-agent = Agent(
-    ollama_model,
+financial_agent = Agent(
+    model,
     output_type = [EmpresasOutput, DbExists, DataPoints, Ticker],
     system_prompt = (
         r"""
@@ -69,47 +69,7 @@ agent = Agent(
     deps_type = dict
 )
 
-@agent.tool
-def check_tickers(context: RunContext[Dict]) -> Dict[str, bool]:
-    """
-    Tool that checks if the tickers were already stored in the database, should be the first
-    tool called, after that, if the tickers were not stored, call the store_tickers tool
-    ARGS:
-        context[RunContext]: Context of the agent run
-    Returns:
-        Returns a dictionary with the tickers if they were found, or an empty dictionary if not
-    """
-    with httpx.Client() as client:
-        response = client.get("http://localhost:8000/stored")
-        if response.status_code == 200:
-            data = response.json()
-            if data.get("exists", False):
-                return {"tickers_stored": True}
-    return {"tickers_stored": False}
-
-@agent.tool
-def store_tickers(context: RunContext[Dict]) -> Dict[str, str]:
-    """
-    Tool responsible for the task of getting the name and ticker from each company listed at ibovespa
-    it will create a dictionary where each company name is the key and the ticker the value
-    this tool should be called if you haven't called it before
-    ARGS:
-        context[RunContext]: Context of the agent run
-    Returns:
-        Returns a dictionary with a message if wether the operation was successful or not
-    """
-    items = investpy.stocks.get_stocks(country = "brazil")[["name", "symbol"]].to_dict("records")
-
-    with httpx.Client() as client:
-        response = client.post("http://localhost:8000/store_tickers", json = {})
-        if response.status_code != 200:
-            raise Exception("Error storing tickers via API")
-
-    ans = response.json().get("status", False)
-
-    return {"ticker_stored": ans}
-
-@agent.tool
+@financial_agent.tool
 def get_ticker(context: RunContext[Dict], company_name: str) -> Dict[str, str]:
     """
     Tool that fetches the ticker from the company name provided from the API
@@ -126,7 +86,7 @@ def get_ticker(context: RunContext[Dict], company_name: str) -> Dict[str, str]:
             return {"ticker": data.get("ticker", None)}
     return {"ticker": None}
 
-@agent.tool
+@financial_agent.tool
 def get_ticker_plot(context: RunContext[Dict], company_ticker: str, start_date: str = "2025-09-01", end_date: str = "2025-10-01") -> DataPoints:
     """
     Tool that gets the ticker value daily and returns them from the dates given
@@ -146,20 +106,3 @@ def get_ticker_plot(context: RunContext[Dict], company_ticker: str, start_date: 
     returnable_data_dict = DataPoints(points  = returnable_data)
 
     return returnable_data_dict
-
-class FinanceAgent:
-    def __init__(self):
-        self.agent = agent
-        self.response = None
-
-    def run(self, prompt: str) -> ToolReturn:
-        if self.response is None:
-            response = self.agent.run_sync(prompt)
-        else:
-            response = self.agent.run_sync(prompt, message_history = self.response)
-        self.response = response
-        return response
-
-if __name__ == "__main__":
-    agent = FinanceAgent(agent)
-    print(agent.run("Hi, can you provide me the ticker for natura?"))
