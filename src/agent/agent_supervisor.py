@@ -1,5 +1,6 @@
 from pydantic_ai import Agent, RunContext, ToolReturn
 from pydantic_ai.models.huggingface import HuggingFaceModel
+from pydantic import BaseModel
 from src.agent.supervised.finance_agent import financial_agent
 from src.agent.supervised.summarizer_model import summarizer_agent
 from src.agent.supervised.conversational_agent import conversational_agent

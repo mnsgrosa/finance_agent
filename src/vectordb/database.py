@@ -18,28 +18,25 @@ class FinancialDatabase:
             }
         )
 
-    def add_chunks(self, chunks: dict):
-        for chunk in chunks:
-            record_id = str(uuid4())
-            documents = chunk['documents']
-            metadata = chunk['metadata']
-            self.collection.add(
-                ids = [record_id],
-                documents =[documents],
-                metadatas = [metadata]
-            )
+    def get_company(self, company_name: str):
+        result = self.collection.query(
+            query_texts = [company_name],
+            n_results = 1
+        )
+        return result.metadatas.get("ticker", None)
 
-    def add_financial_record(self, document: str, metadata: dict):
+    def add_financial_news(self, summary: str, metadata: dict):
+        record_id = str(uuid4())
         self.collection.add(
             ids = [record_id],
-            embeddings= [document],
+            document = [summary],
             metadatas = [metadata]
         )
     
-    def get_record(self, query: str, metadata: dict, n_records: int = 1):
+    def get_financial_news(self, company_name: str, n_records: int = 1):
         results = self.collection.query(
             query_texts = [query],
-            n_results = 1,
+            n_results = n_records,
             where = metadata
         )
         return results

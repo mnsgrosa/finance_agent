@@ -1,22 +1,17 @@
 import yfinance as yf
-import httpx
-import pandas as pd
 import investpy
-from bs4 import BeautifulSoup
+import pandas as pd
+from src.vectordb.databaase import FinancialDatabase
 from typing import Dict, Any
 from pydantic_ai import Agent, RunContext, ToolReturn
 from pydantic_ai.models.huggingface import HuggingFaceModel
-from app.src.agent.agent_schemas.output_schemas import (
-    EmpresasOutput, 
-    DataPoints,
-    DbExists,
-    Ticker
-)
-from investiny import search_assets, historical_data
+# TODO: Import schemas
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
+
+database = FinancialDatabase()
 
 model = HuggingFaceModel(
     model_name = "cfahlgren1/natural-functions",
@@ -72,22 +67,24 @@ financial_agent = Agent(
 @financial_agent.tool
 def get_ticker(context: RunContext[Dict], company_name: str) -> Dict[str, str]:
     """
-    Tool that fetches the ticker from the company name provided from the API
+    Tool that fetches the ticker from the company name provided from investpy API and stores at the database
     ARGS:
         context[RunContext]: Context of the agent run
         company_name[str]: Company name that the user asked about
     Returns:
         Returns the ticker associated with the company name provided
     """
-    with httpx.Client() as client:
-        response = client.post("http://localhost:8000/get_ticker", json={"company_name": company_name})
-        if response.status_code == 200:
-            data = response.json()
-            return {"ticker": data.get("ticker", None)}
-    return {"ticker": None}
+    search_result = investpy.search_quotes(
+        text = company_name,
+        products = ["stocks"],
+        countries = ["brazil"],
+        n_results = 1
+    )
+    database.add_company(company_name, search_result.symbol)
+    return {"ticker": search_result.symbol}
 
 @financial_agent.tool
-def get_ticker_plot(context: RunContext[Dict], company_ticker: str, start_date: str = "2025-09-01", end_date: str = "2025-10-01") -> DataPoints:
+def get_ticker_plot(context: RunContext[Dict], company_name: str, start_date: str = "2025-09-01", end_date: str = "2025-10-01") -> DataPoints:
     """
     Tool that gets the ticker value daily and returns them from the dates given
     ARGS:
@@ -98,7 +95,12 @@ def get_ticker_plot(context: RunContext[Dict], company_ticker: str, start_date: 
     Returns:
         Returns a dictionary where each key is a date in the format YYYY-MM-DD and value the closing price of the stock on that date
     """
-    data = yf.download(company_ticker + ".SA", start = start_date, end = end_date, progress = False)
+    result = database.get_company(company_name)
+
+    if not result:
+        result = get_ticker(context, company_name).get("ticker")
+
+    data = yf.download(result + ".SA", start = start_date, end = end_date, progress = False)
     dates = data.index.strftime("%Y-%m-%d").tolist()
     values = data['Close'].round(2).tolist()
 
