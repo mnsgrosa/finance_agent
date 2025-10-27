@@ -1,10 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List, Dict
 
-class CompanyNews(BaseModel):
-    headline: str = Field(..., description="News headline")
-    summary: str = Field(..., description="Summarized content of the news article")
-
 class FinancialTickerOutput(BaseModel):
     ticker: str = Field(..., description = "Ticker symbol of the company", examples = "NAT3")
 
