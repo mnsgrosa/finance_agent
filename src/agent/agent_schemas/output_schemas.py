@@ -1,56 +1,22 @@
 from pydantic import BaseModel, Field
 from typing import List, Dict
 
-class Empresa(BaseModel):
-    company_name: str = Field(..., description = "Company name")
-    ticker: str = Field(..., description = "Ticker from company")
+class CompanyNews(BaseModel):
+    headline: str = Field(..., description="News headline")
+    summary: str = Field(..., description="Summarized content of the news article")
 
-class EmpresasOutput(BaseModel):
-    empresas: List[Empresa] = Field(..., description = "List of object Empresa")
+class FinancialTickerOutput(BaseModel):
+    ticker: str = Field(..., description = "Ticker symbol of the company", examples = "NAT3")
 
 class DataPoint(BaseModel):
-    date: str = Field(..., description = "Point on the x axis")
-    value: float = Field(..., description = "Point on the y axis")
+    point: Dict[str, float] = Field(..., description = "Dictionary with date as key and closing price as value")
 
-class DataPoints(BaseModel):
-    points: List[DataPoint] = Field(..., description = "List of objects datapoints")
+class FinancialPlotOutput(BaseModel):
+    points: List[DataPoints] = Field(..., description = "Data points for the financial plot")
 
-class DbExists(BaseModel):
-    tickers_stored: bool = Field(...,
-                                description = "Boolean indicating if the tickers are stored in the database",
-                                examples = r"{'tickers_stored': True}"
-    )
+class SummarizerNewsOutput(BaseModel):
+    headline: str = Field(..., description="Headline of the news article")
+    summary: str = Field(..., description="Summarized content of the news article")
 
-class Ticker(BaseModel):
-    company_name: str = Field(
-        ...,
-        description = "Company name",
-        examples = r"{'company_name': 'Natura & Co Holding S.A.'}"
-    )
-    ticker: str = Field(
-        ...,
-        description = "Ticker name",
-        examples = r"{'ticker':'NATU3'}"
-    )
-
-class CompanyData(BaseModel):
-    company_name: str = Field(
-        ...,
-        description = "Company name",
-        examples = r"{'company_name': 'Natura & Co Holding S.A.'}"
-    )
-    ticker: str = Field(
-        ...,
-        description = "Ticker from company",
-        examples = r"{'ticker':'NATU3'}"
-    )
-    title: str = Field(
-        ...,
-        description = "News title about the company",
-        examples = r"{'title': 'Natura & Co Holding S.A. Reports Strong Quarterly Earnings'}"
-    )
-    summarized_content: str = Field(
-        ...,
-        description = "News summarized about the company",
-        examples = r"{'summarized_content': 'Natura & Co Holding S.A. reported a significant increase in quarterly earnings...'}"
-    )
+class ConversationalOutput(BaseModel):
+    content: str = Field(..., description="Response content from the conversational agent")

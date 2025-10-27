@@ -33,7 +33,7 @@ class FinancialDatabase:
             metadatas = [metadata]
         )
     
-    def get_financial_news(self, company_name: str, n_records: int = 1):
+    def get_financial_news(self, company_name: str, n_records: int = 5):
         results = self.collection.query(
             query_texts = [query],
             n_results = n_records,
