@@ -16,7 +16,7 @@ supervisor_model = HuggingFaceModel(
     api_key = os.getenv("HF_API_KEY"),
 )
 
-agent_supervisor = Agent(
+supervisor = Agent(
     supervisor_model,
     output_type = [SupervisorResponse],
     system_prompt = r"""
@@ -39,7 +39,7 @@ agent_supervisor = Agent(
     """
 )
 
-@agent_supervisor.tool
+@supervisor.tool
 def delegate_to_financial_agent(ctx: RunContext[None], query: str) -> SupervisorResponse:
     """
     Based on the user query, if the user presents questions about financial data, as company ticker, stock prices
@@ -54,7 +54,7 @@ def delegate_to_financial_agent(ctx: RunContext[None], query: str) -> Supervisor
     )
     return ans
 
-@agent_supervisor.tool
+@supervisor.tool
 def delegate_to_summarizer_agent(ctx: RunContext[None], query: str) -> SupervisorResponse:
     """
     Based on the user query, if the user presents questions about news summarization, headlines extraction
@@ -69,7 +69,7 @@ def delegate_to_summarizer_agent(ctx: RunContext[None], query: str) -> Superviso
     )
     return ans
 
-@agent_supervisor.tool
+@supervisor.tool
 def delegate_to_conversational_agent(ctx: RunContext[None], query: str) -> SupervisorResponse:
     """
     Based on the user query, if the user presents questions about conversational data regarding the brazilian stock market,

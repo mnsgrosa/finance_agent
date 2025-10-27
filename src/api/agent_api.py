@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.agent.agent_supervisor import agent_supervisor
+from ..agent_supervisor import agent_supervisor
 from .api_schema import ApiResponseSchema
 import logfire
 

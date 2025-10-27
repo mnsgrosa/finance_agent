@@ -1,7 +1,7 @@
 from pydantic_ai import Agent, RunContext, ToolReturn
 from pydantic_ai.models.huggingface import HuggingFaceModel
 from dotenv import load_dotenv
-from ..vectordb.database import FinancialDatabase
+from .vectordb.database import FinancialDatabase
 from ..agent_schemas.output_schemas import ConversationalOutput
 from transformers import pipeline
 from dotenv import load_dotenv
