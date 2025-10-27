@@ -18,6 +18,8 @@ supervises 3 agents:
 
 TODO: Insert the architecture image
 
+![agent_architecture](arquitetura_supervisor.png)
+
 UI -> prompt -> API -> Supervisor -> [Finance, Summarizer, Conversational] -> API -> UI
 
 ## Stack used
