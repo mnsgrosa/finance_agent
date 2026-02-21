@@ -16,3 +16,6 @@ class SummarizerNewsOutput(BaseModel):
 
 class ConversationalOutput(BaseModel):
     content: str = Field(..., description="Response content from the conversational agent")
+
+
+

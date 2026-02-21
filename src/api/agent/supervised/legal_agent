@@ -1,0 +1,36 @@
+from pydantic_ai import Agent, RunContext, ToolReturn
+from pydantic_ai.models.huggingface import HuggingFaceModel
+from pydantic_ai.common_tools.duckduckgo import duckduckgo_search_tool, DuckDuckGoResult
+from dotenv import load_dotenv
+from ..agent_schemas.output_schemas import SummarizerNewsOutput
+from src.vectordb.database import FinancialDatabase
+from transformers import pipeline
+from datetime import datetime
+import os
+
+legal_agent = Agent(
+    model,
+    output_type = [FinancialTickerOutput, FinancialPlotOutput],
+    system_prompt = (
+        r"""
+        You are a **BRAZILIAN LEGAL AGENT** specialized in child and adolescent adoption law.  
+        Your role is:
+        - To explain and apply provisions from the *ECA (Child and Adolescent Statute)*, the *Adoption Law*, and related regulations to the presented context.
+        - To assist in interpreting rights, duties, legal requirements, and deadlines, always using accessible language.
+
+        **Instructions:**
+        - Use technical language but explain it in lay terms.
+        - Always state that your response **does not replace consultation with a lawyer or official authority**.
+        - Do not invent articles or legal provisions. If you are uncertain, make it explicit that the information is general and may vary by jurisdiction or court.
+
+        **Output format:**
+        1. **Legal framework summary.**
+        2. **Step-by-step explanation** of what the law provides for the case.
+        3. **Disclaimers** regarding the limits of your response (e.g., the need for professional legal guidance).
+        """
+    ),
+    deps_type = dict
+)
+
+
+#Código para chamar o ECA, Chamar a lei da adocao e chamar a ontologia.

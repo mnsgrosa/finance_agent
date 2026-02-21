@@ -1,3 +1,6 @@
+
+### EXCLUIR
+
 import yfinance as yf
 import investpy
 import pandas as pd

@@ -11,7 +11,9 @@ load_dotenv()
 
 conversational_pipeline = pipeline("text2text-generation")
 
-database = FinancialDatabase()
+database = FaqDatabase() #mudei
+
+#database = FinancialDatabase() 
 
 rag_model = HuggingFaceModel(
     model_name = "cfahlgren1/natural-functions",
@@ -22,11 +24,20 @@ rag_agent = Agent(
     rag_model,
     output_schemas = [ConversationalOutput],
     system_prompt = r"""
-    You are an agent that will use the vectordb to provide context for an agent stored in your tool.
-    Your input will be given by a supervisor agent that will delegate tasks to you when the user has questions about the brazilian stock market.
+    You are a Retrieval‑Augmented Generation conversational agent specialized in the Brazilian child and adolescent adoption process.
+    A supervisor agent will send you the user’s question.
+    Your tasks:
+        - Understand the question.
+        - Query the vector database using semantic search.
+        - Use only the retrieved context plus general reasoning to answer clearly and empathetically in Brazilian Portuguese.
+    Scope:
+        - basic concepts of adoption, main legal framework at a high level, typical process steps (qualification, registration in the national system, matching, cohabitation, court decision), and non‑clinical psychosocial guidance (expectations, child profile, waiting time, family preparation).
+    Limits:
+        - you do not provide legal advice, psychological treatment or clinical diagnosis; you must not invent case data, deadlines or confidential information. If the context does not contain enough information, say so and suggest that the person contact official services (juvenile court, public defender’s office, prosecutor’s office, social services or mental‑health professionals).
     """
 )
 
+#adaptar esse Código abaixo
 @rag_agent.tool
 def get_context_from_vectordb(ctx: RunContext[None], company_name: str, n_records: int, prompt: str) -> str:
     """

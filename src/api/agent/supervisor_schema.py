@@ -5,10 +5,11 @@ class SupervisorResponse(BaseModel):
     delegated_agent: SpecializedAgent = Field(
         ...,
         description = "The name of the specialized agent to which the task has been delegated",
-        examples = "Financial agent, Summarizer agent, Conversational agent"
+        examples = "Legal agent, Psychosocial Agent,Process Agent, Conversational agent"
     )
     content: Dict[str, Any] = Field(
         ...,
-        description = "The response content from the delegated agent, it can vary based on the agent's functionality",
-        examples = r"'The stock price of XYZ Corp is currently $150.' or [{'2025-01-01: 150.0}, {'2025-01-02: 152.5}]'"
+        description = "The response content from the delegated agent (Legal, Psychosocial, or Process), covering laws, emotional support, or administrative steps.",
+        examples = r"'TAccording to Art. 42 of the ECA, the adopter must be at least 18 years old.' or [{'step': 1, 'status': 'Qualification'}, {'step': 2, 'status': 'Waiting List'}]'"
     )
+
